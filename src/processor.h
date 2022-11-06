@@ -4,11 +4,13 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <string.h>
+
 #define ERROR_MAXLEN 256
-#define ERROR(p, msg) do {\
+#define ERROR(p, msg, ...) do {\
         snprintf(p->error.message, 1024, msg, __VA_ARGS__);\
         p->error.message_len = strlen(p->error.message);\
-        p->is_error = true;\
+        p->error.is_error = true;\
     } while (0);
 
 struct directive_st {
