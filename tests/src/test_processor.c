@@ -2,6 +2,13 @@
 #include <string.h>
 #include "processor_helpers.h"
 
+void process_and_flush(struct processor_st* processor) {
+    while (!processor->done) {
+        process(processor);
+    }
+    fflush(test_out.handle);
+}
+
 char processed_directive = '\0';
 
 void test_directive_processor(struct processor_st* processor) {

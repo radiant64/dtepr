@@ -1,9 +1,11 @@
 add_subdirectory(lib)
 
-file(GLOB TEST_SOURCES src/*.c src/*.h)
-set(MODULE_SOURCES ../src/processor.c)
+macro(dtepr_add_test NAME TEST_SOURCE MODULE_SOURCE)
+    add_executable(${NAME} src/${TEST_SOURCE} ../src/${MODULE_SOURCE})
+    target_include_directories(${NAME} PRIVATE ../src)
+    target_link_libraries(${NAME} PRIVATE testdrive)
+endmacro()
 
-add_executable(tests ${TEST_SOURCES} ${MODULE_SOURCES})
-target_include_directories(tests PRIVATE ../src)
-target_link_libraries(tests PRIVATE testdrive)
+dtepr_add_test(test_directives test_directives.c directives.c)
+dtepr_add_test(test_processor test_processor.c processor.c)
 

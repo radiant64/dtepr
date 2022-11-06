@@ -30,10 +30,3 @@ void close_output() {
     free(test_out.data);
 }
 
-void process_and_flush(struct processor_st* processor) {
-    while (!processor->done) {
-        process(processor);
-    }
-    fflush(test_out.handle);
-}
-
