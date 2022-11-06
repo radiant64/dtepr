@@ -3,8 +3,6 @@
 
 #include <string.h>
 
-#define TEST_BUFFER_SIZE 1024
-
 struct buffer_st {
     FILE* handle;
     char* data;
