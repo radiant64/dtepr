@@ -4,9 +4,18 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define ERROR_MAXLEN 256
+#define ERROR(p, msg) p->error = (struct error_st) { msg, strlen(msg), true }
+
 struct directive_st {
     char c;
     uint8_t cursor;
+};
+
+struct error_st {
+    char message[ERROR_MAXLEN];
+    size_t message_len;
+    bool is_error;
 };
 
 struct processor_st {
@@ -19,6 +28,7 @@ struct processor_st {
     FILE* arg_file;
     bool escaped;
     bool done;
+    struct error_st error;
 };
 
 void process(struct processor_st* processor);
