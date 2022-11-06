@@ -12,6 +12,7 @@ struct directive_st {
 struct processor_st {
     struct directive_st directive;
     void (*directive_processor_impl)(struct processor_st* processor);
+    FILE* current_out;
     FILE* input_file;
     FILE* output_file;
     FILE* program_file;

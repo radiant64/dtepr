@@ -1,7 +1,7 @@
 #include "processor.h"
 
 static const char const directive_tpl[] = "<: :>";
-static const uint8_t directive_size = sizeof(directive_tpl);
+static const uint8_t directive_size = sizeof(directive_tpl) - 1;
 static const uint8_t directive_locus = 2;
 static const char escape_char = '\\';
 
@@ -13,6 +13,7 @@ bool match_directive(char c, struct processor_st* processor) {
     struct directive_st* d = &processor->directive;
     if (d->cursor == directive_locus) {
         d->c = c;
+        d->cursor++;
         return true;
     }
 
@@ -26,9 +27,9 @@ bool match_directive(char c, struct processor_st* processor) {
 void unmatch_partial_directive(const struct processor_st* processor) {
     for (int i = 0; i < processor->directive.cursor; ++i) {
         if (i == directive_locus) {
-            fwrite(&processor->directive.c, 1, 1, processor->output_file);
+            fwrite(&processor->directive.c, 1, 1, processor->current_out);
         } else {
-            fwrite(&directive_tpl[i], 1, 1, processor->output_file);
+            fwrite(&directive_tpl[i], 1, 1, processor->current_out);
         }
     }
 }
@@ -63,9 +64,10 @@ void process(struct processor_st* processor) {
     if (processor->directive.cursor > 0) {
         // Dump the partial (but non-matching) directive to the output.
         unmatch_partial_directive(processor);
+        processor->directive = (struct directive_st) { 0 };
     }
 
-    int res = fwrite(&c, 1, 1, processor->output_file);
+    int res = fwrite(&c, 1, 1, processor->current_out);
     if (res == 0) {
         // TODO: Something went wrong when writing.
     }
