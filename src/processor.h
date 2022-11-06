@@ -8,7 +8,7 @@
 
 #define ERROR_MAXLEN 256
 #define ERROR(p, msg, ...) do {\
-        snprintf(p->error.message, 1024, msg, __VA_ARGS__);\
+        snprintf(p->error.message, 1024, msg,## __VA_ARGS__);\
         p->error.message_len = strlen(p->error.message);\
         p->error.is_error = true;\
     } while (0);

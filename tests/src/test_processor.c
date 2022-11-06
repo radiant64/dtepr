@@ -34,6 +34,14 @@ FIXTURE(test_processor, "Processor")
         close_input();
     END_SECTION
 
+    SECTION("Nothing is copied when output == NULL")
+        with_input(&processor, "test1234");
+        processor.current_out = NULL;
+        process_and_flush(&processor);
+        REQUIRE(test_out.size == 0);
+        close_input();
+    END_SECTION
+
     SECTION("Escaped characters")
         SECTION("Escaped normal character outputs nothing")
             with_input(&processor, "\\e");
@@ -77,6 +85,8 @@ FIXTURE(test_processor, "Processor")
                 REQUIRE(test_out.size == 4);
                 REQUIRE(strcmp(test_out.data, "test") == 0);
             END_SECTION
+
+            close_input();
         END_SECTION
     END_SECTION
 

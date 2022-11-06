@@ -9,6 +9,14 @@ static bool is_complete_directive(const struct processor_st* processor) {
     return processor->directive.cursor == directive_size;
 }
 
+void write_to_current(struct processor_st* processor, char c) {
+    if (processor->current_out) {
+         if (fwrite(&c, 1, 1, processor->current_out) == 0) {
+             ERROR(processor, "Failed to write to output stream");
+         }
+    }
+}
+
 bool match_directive(char c, struct processor_st* processor) {
     struct directive_st* d = &processor->directive;
     if (d->cursor == directive_locus) {
@@ -24,12 +32,13 @@ bool match_directive(char c, struct processor_st* processor) {
     return false;
 }
 
-void unmatch_partial_directive(const struct processor_st* processor) {
+void unmatch_partial_directive(struct processor_st* processor) {
+    int res = 1;
     for (int i = 0; i < processor->directive.cursor; ++i) {
         if (i == directive_locus) {
-            fwrite(&processor->directive.c, 1, 1, processor->current_out);
+            write_to_current(processor, processor->directive.c);
         } else {
-            fwrite(&directive_tpl[i], 1, 1, processor->current_out);
+            write_to_current(processor, directive_tpl[i]);
         }
     }
 }
@@ -67,9 +76,8 @@ void process(struct processor_st* processor) {
         processor->directive = (struct directive_st) { 0 };
     }
 
-    int res = fwrite(&c, 1, 1, processor->current_out);
-    if (res == 0) {
-        // TODO: Something went wrong when writing.
+    if (processor->current_out) {
+        write_to_current(processor, c);
     }
 }
 
