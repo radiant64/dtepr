@@ -1,11 +1,13 @@
 #include "processor.h"
 
-#include <unistd.h>
-
 static const char const directive_tpl[] = "<: :>";
 static const uint8_t directive_size = sizeof(directive_tpl);
 static const uint8_t directive_locus = 2;
 static const char escape_char = '\\';
+
+static bool is_complete_directive(const struct processor_st* processor) {
+    return processor->directive.cursor == directive_size;
+}
 
 bool match_directive(char c, struct processor_st* processor) {
     struct directive_st* d = &processor->directive;
@@ -21,26 +23,19 @@ bool match_directive(char c, struct processor_st* processor) {
     return false;
 }
 
-static bool is_complete_directive(const struct processor_st* processor) {
-    return processor->directive.cursor == directive_size;
-}
-
 void unmatch_partial_directive(const struct processor_st* processor) {
     for (int i = 0; i < processor->directive.cursor; ++i) {
         if (i == directive_locus) {
-            write(processor->output_fd, &processor->directive.c, 1);
+            fwrite(&processor->directive.c, 1, 1, processor->output_file);
         } else {
-            write(processor->output_fd, &directive_tpl[i], 1);
+            fwrite(&directive_tpl[i], 1, 1, processor->output_file);
         }
     }
 }
 
-void process_directive(const struct processor_st* processor) {
-}
-
 void process(struct processor_st* processor) {
     char c;
-    if (read(STDIN_FILENO, &c, 1) == 0) {
+    if (fread(&c, 1, 1, processor->input_file) == 0) {
         processor->done = true;
         return;
     }
@@ -57,7 +52,9 @@ void process(struct processor_st* processor) {
         return;
     } else if (match_directive(c, processor)) {
         if (is_complete_directive(processor)) {
-            return process_directive(processor);
+            processor->directive_processor_impl(processor);
+            processor->directive = (struct directive_st) { 0 };
+            return;
         }
         // Potential directive; don't copy to output (for now).
         return;
@@ -68,7 +65,7 @@ void process(struct processor_st* processor) {
         unmatch_partial_directive(processor);
     }
 
-    int res = write(processor->output_fd, &c, 1);
+    int res = fwrite(&c, 1, 1, processor->output_file);
     if (res == 0) {
         // TODO: Something went wrong when writing.
     }
