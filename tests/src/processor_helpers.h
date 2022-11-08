@@ -19,14 +19,22 @@ void close_input() {
     fclose(test_in);
 }
 
+void open_buffer(struct buffer_st* buffer) {
+    buffer->handle = open_memstream(&buffer->data, &buffer->size);
+}
+
+void close_buffer(struct buffer_st* buffer) {
+    fclose(buffer->handle);
+    free(buffer->data);
+}
+
 void with_output(struct processor_st* processor) {
-    test_out.handle = open_memstream(&test_out.data, &test_out.size);
+    open_buffer(&test_out);
     processor->output_file = test_out.handle;
     processor->current_out = test_out.handle;
 }
 
 void close_output() {
-    fclose(test_out.handle);
-    free(test_out.data);
+    close_buffer(&test_out);
 }
 
