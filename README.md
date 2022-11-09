@@ -1,6 +1,6 @@
 # dtepr
 
-*D*elegating *te*xt *pr*ocessor for Unix systems. 
+**D**elegating **te**xt **pr**ocessor for Unix systems. 
 
 Reads and processes text from the standard input, and writes the result to
 either the standard output or an internal program buffer. Flow is controlled
