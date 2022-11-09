@@ -5,8 +5,7 @@
 #include "directives.h"
 #include "executor.h"
 #include "processor.h"
-
-const char dtepr_version[] = "0.0.1";
+#include "version.h"
 
 struct buffer_st {
     FILE* handle;

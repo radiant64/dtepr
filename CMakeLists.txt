@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 3.12)
 project(dtepr)
 set(CMAKE_C_STANDARD 17)
 
-file(GLOB SOURCES src/*.c src/*.h)
-list(FILTER SOURCES EXCLUDE REGEX "src\/main\.c")
+set(SOURCES
+    src/directives.c
+    src/executor.c
+    src/processor.c
+    src/version.c
+)
 
 add_library(dtepr-lib ${SOURCES})
 add_executable(dtepr src/main.c)
