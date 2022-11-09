@@ -9,8 +9,6 @@
 static struct executor_st* executor = NULL;
 
 static void free_executor() {
-//    close(executor->cmd_input_fd[1]);
-//    close(executor->cmd_output_fd[0]);
     free(executor);
 }
 
@@ -48,7 +46,6 @@ struct executor_st* fork_and_execute_factory(struct processor_st* processor) {
     default: // Parent
         close(etor->cmd_input_fd[0]); // Close for reading.
         close(etor->cmd_output_fd[1]); // Close for writing.
-        
         etor->cmd_output_file = fdopen(etor->cmd_output_fd[0], "r");
         atexit(free_executor);
         return etor;

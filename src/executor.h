@@ -12,5 +12,3 @@ struct executor_st {
 
 struct executor_st* fork_and_execute_factory(struct processor_st* processor);
 
-struct executor_st* get_executor(struct processor_st* processor);
-

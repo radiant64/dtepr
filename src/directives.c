@@ -1,8 +1,11 @@
 #include "directives.h"
 #include "executor.h"
 #include "processor.h"
+#include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#define BUF_INIT 4096
 
 void execute_program(struct processor_st* processor) {
     processor->current_out = processor->output_file;
@@ -16,7 +19,7 @@ void execute_program(struct processor_st* processor) {
     char* program = malloc(program_size);
     if (!program) {
         ERROR(processor, "Failed to allocate buffer for executing program");
-        goto cleanup_etor;
+        return;
     }
 
     fseek(processor->program_file, 0, SEEK_SET);
@@ -24,44 +27,64 @@ void execute_program(struct processor_st* processor) {
     if (res != program_size) {
         ERROR(processor, "Error when reading program into buffer"
                 " (expected %lu bytes, got %lu)", program_size, res);
-        goto cleanup_program;
+        free(program);
+        return;
     }
 
     res = write(etor->cmd_input_fd[1], program, program_size);
     if (res != program_size) {
         ERROR(processor, "Error when sending program to command"
                 " (expected %lu bytes, sent %lu)", program_size, res);
-        goto cleanup_program;
+        free(program);
+        return;
     }
     free(program);
     close(etor->cmd_input_fd[1]);
 
-    char* result;
-    int size;
-    res = fscanf(etor->cmd_output_file, "%ms%n", &result, &size);
-    if (res != 1) {
-        ERROR(processor, "Error when reading output from command");
-        goto cleanup_program;
+    // Read back program output into char buffer.
+    char* out = malloc(BUF_INIT);
+    if (!out) {
+        ERROR(processor, "Error when allocating buffer for program output");
+        return;
+    }
+    char* cursor = out;
+    size_t bufsize = BUF_INIT;
+    while (!feof(etor->cmd_output_file)) {
+        size_t readlen = bufsize - (cursor - out);
+        res = fread(cursor, 1, readlen, etor->cmd_output_file);
+        cursor += res;
+        if (res != readlen) {
+            break;
+        }
+        bufsize *= 2;
+        char* new_out = realloc(out, bufsize);
+        if (!new_out) {
+            ERROR(processor, "Error when resizing buffer for program output");
+            free(out);
+            return;
+        }
+        out = new_out;
+    }
+
+    size_t size = cursor - out;
+    if (size) {
+        // Strip away trailing whitespace.
+        while (size > 1 && isspace(out[size - 1])) {
+            size--;
+        }
+
+        res = fwrite(out, 1, size, processor->current_out);
+        free(out);
+        if (res != size) {
+            ERROR(processor, "Error writing command output to current output");
+            return;
+        }
     }
 
     fclose(etor->cmd_output_file);
     free(etor);
 
     fseek(processor->program_file, 0L, SEEK_SET);
-
-    res = fwrite(result, 1, size, processor->current_out);
-    if (res != size) {
-        ERROR(processor, "Error when writing command output to current output"
-                " (expected %d bytes, wrote %lu)", size, res);
-        goto cleanup_program;
-    }
-    return;
-
-cleanup_program:
-    free(program);
-
-cleanup_etor:
-    free(etor);
 }
 
 void process_directive(struct processor_st* processor) {
