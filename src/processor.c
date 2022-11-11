@@ -53,9 +53,8 @@ void process(struct processor_st* processor) {
     if (processor->escaped) {
         processor->escaped = false;
         if (c != directive_tpl[0] && c != escape_char) {
-            // Can only escape start of directive, and escape character. Other
-            // characters will be silenced.
-            return;
+            // Escape breakout/invalid escape: Print the escape character.
+            write_to_current(processor, escape_char);
         }
     } else if (c == escape_char) {
         processor->escaped = true;

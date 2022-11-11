@@ -43,10 +43,11 @@ FIXTURE(test_processor, "Processor")
     END_SECTION
 
     SECTION("Escaped characters")
-        SECTION("Escaped normal character outputs nothing")
+        SECTION("Escaped normal character unescapes")
             with_input(&processor, "\\e");
             process_and_flush(&processor);
-            REQUIRE(test_out.size == 0);
+            REQUIRE(test_out.size == 2);
+            REQUIRE(strcmp(test_out.data, "\\e") == 0);
             close_input();
         END_SECTION
 
