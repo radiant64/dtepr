@@ -49,6 +49,7 @@ void execute_program(struct processor_st* processor) {
     }
     char* cursor = out;
     size_t bufsize = BUF_INIT;
+    size_t size;
     while (!feof(etor->cmd_output_file)) {
         size_t readlen = bufsize - (cursor - out);
         res = fread(cursor, 1, readlen, etor->cmd_output_file);
@@ -63,10 +64,12 @@ void execute_program(struct processor_st* processor) {
             free(out);
             return;
         }
+        size = cursor - out;
         out = new_out;
+        cursor = out + size;
     }
 
-    size_t size = cursor - out;
+    size = cursor - out;
     if (size) {
         // Strip away trailing whitespace.
         while (size > 1 && isspace(out[size - 1])) {
